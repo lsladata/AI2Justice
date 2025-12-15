@@ -1,4 +1,4 @@
-RAG-Based Chatbot
+## RAG-Based Chatbot
 A customizable Retrieval-Augmented Generation (RAG) chatbot that allows you to build intelligent conversational AI systems with your own data sources.
 
 🌟 Overview

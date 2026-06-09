@@ -1,230 +1,197 @@
-## RAG-Based Chatbot
-A customizable Retrieval-Augmented Generation (RAG) chatbot that allows you to build intelligent conversational AI systems with your own data sources.
+# 🧠 Build Your Own RAG Chatbot
 
-🌟 Overview
-This project provides a foundation for creating chatbots that can answer questions based on your specific documents and knowledge base. Using RAG technology, the chatbot retrieves relevant information from your data and generates accurate, contextual responses.
+A beginner-friendly template for building a chatbot that answers questions about **your own documents** — any subject, any collection of files. It uses **RAG** (Retrieval-Augmented Generation): instead of hoping a language model already knows the answer, you *show* it the relevant pages and ask it to answer from them. That's what keeps answers grounded and lets the bot cite its sources.
 
-✨ Features
-Hybrid Search: Combines semantic search (embeddings) with keyword search (BM25) for optimal retrieval
-Document Processing: Support for multiple document formats (PDF, TXT, DOCX, Markdown)
-Vector Embeddings: Create and store document embeddings with metadata for semantic search
-BM25 Integration: Traditional keyword-based search for precise matching
-Streamlit UI: Interactive and user-friendly chat interface
-Customizable: Easy to adapt to your specific use case
-Scalable: Handles large document collections
-🏗️ Architecture
-User Query → Hybrid Retrieval → Context Ranking → LLM Generation → Response
-              ├─ Vector Embeddings (Semantic - Metadata Enhanced)
-              └─ BM25 (Keyword)
-The system:
+The same engine in this repo powers two very different reference bots:
 
-Converts your documents into embeddings and builds BM25 index
-Stores embeddings in a vector database
-For each query, performs both semantic search (embeddings) and keyword search (BM25)
-Combines and ranks results from both methods
-Generates responses using an LLM with the retrieved context
-📋 Prerequisites
-Python 3.8+
-OpenAI API key (or other LLM provider)
-Virtual environment (recommended)
-🚀 Quick Start
-1. Clone the Repository
-Copygit clone https://github.com/yourusername/rag-chatbot.git
-cd rag-chatbot
-2. Install Dependencies
-Copypip install -r requirements.txt
-3. Configure Environment
-Create a .env file in the project root:
+- **Juris** — a legal-research assistant over statutes and rules.
+- **LSLA Asks** — an employee-benefits assistant over HR/benefits documents.
 
-OPENAI_API_KEY=your_api_key_here
-VECTOR_DB_PATH=./data/vectordb
-DOCUMENTS_PATH=./data/documents
-4. Add Your Documents
-Place your documents in the data/documents directory:
+Different subjects, identical pipeline. That's the point: swap the documents and it's *your* chatbot.
 
-Copymkdir -p data/documents
-# Add your PDF, TXT, or DOCX files here
-5. Build the Embeddings and Indexes
-Copypython build_embeddings.py
-This script will:
+---
 
-Process all documents in the data/documents directory
-Generate vector embeddings for semantic search
-Build BM25 index for keyword search
-Save both indexes for fast retrieval
-6. Run the Streamlit App
-Copystreamlit run app.py
-The app will open in your browser at http://localhost:8501
+## How RAG works (in one minute)
 
-📁 Project Structure
-rag-chatbot/
-├── app.py                  # Streamlit chat application
-├── build_embeddings.py     # Script to build embeddings and BM25 index
-├── requirements.txt        # Python dependencies
-├── .env.example           # Environment variables template
+```mermaid
+flowchart LR
+    A[Your documents] -->|ingest.py| B[Chunks]
+    B --> C[(Vector store)]
+    B --> D[(Keyword index)]
+    E[User question] -->|app.py| F[search.py]
+    C --> F
+    D --> F
+    F -->|relevant chunks| G[LLM writes answer]
+    G --> H[Answer + sources]
+```
+
+Two phases:
+
+1. **Prepare (once):** cut your documents into small **chunks** and build two search indexes — one for *meaning* (vector) and one for *exact words* (keyword).
+2. **Chat (every question):** **retrieve** the most relevant chunks, **paste** them into a prompt, and let the **LLM** write the answer from them.
+
+---
+
+## The four files you'll actually read
+
+The top level is deliberately tiny — four short, heavily-commented files that map one-to-one to the steps below. Read them in this order:
+
+| File | What it does |
+|------|--------------|
+| **`config.py`** | All your settings and the two AI clients (embeddings + chat), in one place. |
+| **`ingest.py`** | STEP 1 — turns documents into the vector store + keyword index. |
+| **`search.py`** | STEP 2 — finds the chunks most relevant to a question (vector / keyword / hybrid). |
+| **`app.py`** | STEP 3 — the chat UI that retrieves, builds a prompt, and shows the answer. |
+
+Everything advanced (the full production app with four retrieval strategies, structure-aware retrieval, cost tracking, Airtable logging, and the PDF-parsing notebook) lives in **[`advanced/`](./advanced)** — see [`advanced/ADVANCED_GUIDE.md`](./advanced/ADVANCED_GUIDE.md) once the basics click.
+
+---
+
+## Step-by-step
+
+### Step 0 — Install
+
+```bash
+git clone <your-repo-url>
+cd rag-chatbot-template
+
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+### Step 1 — Add your API keys
+
+This template uses **Azure OpenAI** by default (a chat model + an embedding model). Copy the template and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+```dotenv
+AZURE_OPENAI_API_KEY=your-key
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_CHAT_DEPLOYMENT=your-chat-deployment-name
+AZURE_EMBEDDING_DEPLOYMENT=your-embedding-deployment-name
+```
+
+`.env` is git-ignored, so your keys never reach GitHub. Using plain OpenAI or another provider instead? It's a two-line change — see the note at the bottom of `config.py`.
+
+### Step 2 — Add your documents
+
+Drop `.txt` or `.pdf` files into the **`data/`** folder. A sample handbook is already there so you can try it immediately; delete it once you add your own.
+
+### Step 3 — Build the indexes
+
+```bash
+python ingest.py
+```
+
+This runs four sub-steps (all printed as it goes), defined in `ingest.py`:
+
+1. **Load** every file in `data/` into memory.
+2. **Split** each document into ~1,000-character chunks (with a little overlap so sentences aren't cut in half).
+3. **Build the vector store** — embed every chunk and save it to `storage/vectors/`. *(This step calls the embedding API.)*
+4. **Build the keyword index** — a BM25 index saved to `storage/keyword_index.pkl`. *(No API needed.)*
+
+You only rerun this when your documents change.
+
+### Step 4 — Chat
+
+```bash
+streamlit run app.py
+```
+
+Ask a question. For each one the app retrieves the relevant chunks, sends them to the LLM, shows the answer, and lists the **sources** in an expander so you can verify it.
+
+---
+
+## How each part works (and why)
+
+### `config.py` — settings + clients
+RAG needs two AI models: an **embedding model** (turns text into vectors that capture meaning) and a **chat model / LLM** (writes the answer). Creating them in one place means one spot to change provider or fix a key. Secrets are read from `.env`, never written in code.
+
+### `ingest.py` — preparing the documents
+LLMs and search both work best on small, focused pieces of text, so we **chunk** each document. Then we build **two** indexes because they fail in opposite ways:
+
+- **Vector (semantic) search** finds chunks by *meaning* — it'll match "cancel my plan" to a paragraph titled "termination of coverage". But it can miss exact terms.
+- **Keyword (BM25) search** nails exact words, names, and numbers — but is blind to paraphrasing.
+
+Building both lets them cover each other's weaknesses.
+
+### `search.py` — retrieval
+Three functions, increasing in power:
+
+- `vector_search()` — meaning-based (needs the embedding API).
+- `keyword_search()` — exact-word based (no API; great for a quick offline test).
+- `hybrid_search()` — runs both and **interleaves** the results (1st vector, 1st keyword, 2nd vector…), removing duplicates. We rank by *position* rather than raw score because a vector "distance" and a BM25 "score" aren't on the same scale. When both methods return the same chunk, that's a strong signal it's relevant.
+
+> Try it without spending anything: `python search.py "how many vacation days?"` runs the keyword half only, no API key required.
+
+### `app.py` — the chatbot
+The RAG loop in three lines (`answer_question`): **retrieve** chunks → **augment** the prompt by pasting them in → **generate** the answer. The prompt tells the model to answer *only* from the provided context and to admit when it doesn't know — that's what prevents confident wrong answers. The Streamlit UI then shows the answer plus its sources.
+
+---
+
+## Customizing it
+
+| Want to… | Change this |
+|----------|-------------|
+| Use plain OpenAI / a different provider | the two functions in `config.py` (commented example included) |
+| Get more or fewer source chunks per answer | `TOP_K` in `config.py` |
+| Change chunk size / overlap | `CHUNK_SIZE`, `CHUNK_OVERLAP` in `config.py` |
+| Change the bot's tone or rules | `PROMPT_TEMPLATE` in `app.py` |
+| Point at a different documents folder | `DOCS_FOLDER` in `config.py` |
+
+---
+
+## When you're ready for more
+
+The basics above are a complete, working chatbot. The **[`advanced/`](./advanced)** folder is the production version behind Juris and LSLA Asks, and adds:
+
+- **Four selectable retrieval strategies** (vector-only → hybrid → structure-aware → LLM-reranked).
+- **Structure-aware retrieval** — expands a matched chunk back to its full section using document hierarchy (chapters, sections, clauses).
+- **Cost tracking** per question (`cost_tracker.py`) and optional **Airtable logging**.
+- A **PDF-parsing notebook** that detects headings by font to build rich metadata.
+
+Read **[`advanced/ADVANCED_GUIDE.md`](./advanced/ADVANCED_GUIDE.md)** for the full walkthrough.
+
+---
+
+## Repository structure
+
+```
+rag-chatbot-template/
+├── README.md              # this guide
+├── requirements.txt
+├── .env.example           # copy to .env and fill in your keys
+├── .gitignore
+│
+├── config.py              # settings + AI clients          (read 1st)
+├── ingest.py              # STEP 1: documents -> indexes    (read 2nd)
+├── search.py              # STEP 2: retrieval               (read 3rd)
+├── app.py                 # STEP 3: the chat UI             (read 4th)
+│
 ├── data/
-│   ├── documents/         # Your source documents
-│   ├── embeddings/        # Stored vector embeddings
-│   └── bm25_index/        # BM25 index storage
-├── src/
-│   ├── document_loader.py # Document processing
-│   ├── embeddings.py      # Embedding generation
-│   ├── bm25_retriever.py  # BM25 search implementation
-│   ├── hybrid_search.py   # Combines vector + BM25 search
-│   └── chatbot.py         # RAG logic
-└── tests/                 # Unit tests
-🔧 Configuration
-Choosing Your LLM
-Edit config.py to select your preferred language model:
+│   └── sample_handbook.txt   # demo doc — replace with your own
+│
+└── advanced/              # the full production version (Juris / LSLA Asks)
+    ├── ADVANCED_GUIDE.md
+    ├── app.py             # four-strategy app
+    ├── build_bm25.py
+    ├── legal_bm25_search.py
+    ├── metadata_fields.py
+    ├── cost_tracker.py
+    └── notebooks/build_database.ipynb
+```
 
-CopyLLM_PROVIDER = "openai"  # Options: openai, anthropic, huggingface
-MODEL_NAME = "gpt-4"
-TEMPERATURE = 0.7
-Hybrid Search Configuration
-Adjust the balance between semantic and keyword search in config.py:
+`storage/` (the built indexes) and `.env` are created locally and git-ignored.
 
-Copy# Retrieval settings
-VECTOR_WEIGHT = 0.6  # Weight for embedding-based search
-BM25_WEIGHT = 0.4    # Weight for BM25 keyword search
-TOP_K = 5            # Number of documents to retrieve
-Vector Database Options
-The project supports multiple vector stores:
+---
 
-ChromaDB (default): Easy to use, persistent storage
-FAISS: Fast similarity search
-Pinecone: Cloud-based, scalable solution
-Customizing the Prompt
-Modify the system prompt in src/chatbot.py to adjust the chatbot's behavior:
+## Security notes
 
-CopySYSTEM_PROMPT = """
-You are a helpful assistant that answers questions based on the provided context.
-Always cite sources when possible and admit when you don't know something.
-"""
-📚 Usage Examples
-Using the Streamlit App
-Run the app: streamlit run app.py
-Upload documents or use pre-loaded documents
-Type your question in the chat interface
-View responses with source citations
-Building Embeddings Programmatically
-Copyfrom src.embeddings import EmbeddingBuilder
-from src.bm25_retriever import BM25Indexer
-
-# Build vector embeddings
-embedding_builder = EmbeddingBuilder()
-embedding_builder.process_documents('./data/documents')
-embedding_builder.save('./data/embeddings')
-
-# Build BM25 index
-bm25_indexer = BM25Indexer()
-bm25_indexer.build_index('./data/documents')
-bm25_indexer.save('./data/bm25_index')
-Using Hybrid Search
-Copyfrom src.hybrid_search import HybridRetriever
-
-retriever = HybridRetriever(
-    embeddings_path='./data/embeddings',
-    bm25_path='./data/bm25_index'
-)
-
-# Retrieve relevant documents
-results = retriever.search(
-    query="Your question here",
-    vector_weight=0.6,
-    bm25_weight=0.4,
-    top_k=5
-)
-🛠️ Advanced Features
-Understanding Hybrid Search
-The hybrid search combines two complementary approaches:
-
-Vector Embeddings (Semantic Search)
-
-Understands meaning and context
-Finds conceptually similar content
-Handles synonyms and paraphrasing
-Better for abstract queries
-BM25 (Keyword Search)
-
-Precise keyword matching
-Fast and efficient
-Better for specific terms and names
-Handles rare or technical terms
-Tuning Search Weights
-Experiment with different weight combinations:
-
-Copy# More semantic (better for conceptual questions)
-retriever.search(query, vector_weight=0.8, bm25_weight=0.2)
-
-# More keyword-based (better for specific terms)
-retriever.search(query, vector_weight=0.3, bm25_weight=0.7)
-
-# Balanced (default)
-retriever.search(query, vector_weight=0.6, bm25_weight=0.4)
-Adding Custom Document Loaders
-Extend DocumentLoader class to support new file formats:
-
-Copyfrom src.document_loader import DocumentLoader
-
-class CustomLoader(DocumentLoader):
-    def load_custom_format(self, file_path):
-        # Your custom loading logic
-        pass
-Rebuilding Indexes
-When you add or update documents:
-
-Copy# Rebuild both embeddings and BM25 index
-python build_embeddings.py --rebuild
-
-# Or rebuild incrementally (only new documents)
-python build_embeddings.py --incremental
-🧪 Testing
-Run the test suite:
-
-Copypytest tests/
-📝 Best Practices
-Document Preparation: Clean and structure your documents before indexing
-Chunk Size: Experiment with different chunk sizes (default: 512 tokens)
-Overlap: Use overlap between chunks to maintain context (default: 50 tokens)
-Hybrid Weights: Tune vector/BM25 weights based on your document type
-Technical docs: Higher BM25 weight (0.5-0.6)
-General content: Higher vector weight (0.6-0.7)
-Regular Updates: Rebuild indexes when documents change
-Monitoring: Track query performance and relevance
-Testing: Compare results with vector-only vs hybrid search
-🤝 Contributing
-Contributions are welcome! Please:
-
-Fork the repository
-Create a feature branch (git checkout -b feature/AmazingFeature)
-Commit your changes (git commit -m 'Add some AmazingFeature')
-Push to the branch (git push origin feature/AmazingFeature)
-Open a Pull Request
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-🙏 Acknowledgments
-Streamlit - Web application framework
-LangChain - Framework for LLM applications
-Sentence Transformers - Embedding models
-Rank-BM25 - BM25 implementation
-OpenAI - Language models
-📞 Support
-Issues: GitHub Issues
-Discussions: GitHub Discussions
-Email: your.email@example.com
-🗺️ Roadmap
- Multi-language support
- Advanced filtering options
- Conversation history in Streamlit
- User authentication
- Docker deployment
- Cloud deployment guides (AWS, GCP, Azure)
- Streaming responses
- Multiple data source support
- Reranking models integration
- Query expansion techniques
- A/B testing for search weights
-Note: This is a template project. Please customize it according to your specific requirements and use case.
-
-Made with ❤️ by [Your Name]
+- No API keys live in this repo — they're read from `.env`, which is git-ignored. Before your first push, run `git status` and confirm `.env` isn't listed.
+- A `.pkl` index executes code when loaded; only load index files **you built yourself**.
+- Check your documents' licenses before publishing them in a public repo.

@@ -11,7 +11,7 @@ Different subjects, identical pipeline. That's the point: swap the documents and
 
 ---
 
-## How RAG works (in one minute)
+## How RAG works
 
 ```mermaid
 flowchart LR

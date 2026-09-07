@@ -1,6 +1,6 @@
 # 🧠 Build Your Own RAG Chatbot
 
-A beginner-friendly template for building a chatbot that answers questions about **your own documents** — any subject, any collection of files. It uses **RAG** (Retrieval-Augmented Generation): instead of hoping a language model already knows the answer, you *show* it the relevant pages and ask it to answer from them. That's what keeps answers grounded and lets the bot cite its sources.
+A beginner-friendly template for building a chatbot that answers questions about your own documents, any subject, any collection of files. It uses RAG (Retrieval-Augmented Generation): instead of hoping a language model already knows the answer, you show it the relevant documents and ask it to answer from them. That's what keeps answers grounded and lets the bot cite its sources.
 
 The same engine in this repo powers two very different reference bots:
 

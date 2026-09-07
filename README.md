@@ -24,7 +24,7 @@ flowchart LR
     F -->|relevant chunks| G[LLM writes answer]
     G --> H[Answer + sources]
 ```
-
+![How a RAG chatbot works: a Prepare phase run once, and a Chat phase run for every question](images/how-rag-works.svg)
 Two phases:
 
 1. **Prepare (once):** cut your documents into small **chunks** and build two search indexes — one for *meaning* (vector) and one for *exact words* (keyword).

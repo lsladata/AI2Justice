@@ -11,19 +11,6 @@ Different subjects, identical pipeline. That's the point: swap the documents and
 
 ---
 
-## How RAG works
-
-```mermaid
-flowchart LR
-    A[Your documents] -->|ingest.py| B[Chunks]
-    B --> C[(Vector store)]
-    B --> D[(Keyword index)]
-    E[User question] -->|app.py| F[search.py]
-    C --> F
-    D --> F
-    F -->|relevant chunks| G[LLM writes answer]
-    G --> H[Answer + sources]
-```
 ![How a RAG chatbot works: a Prepare phase run once, and a Chat phase run for every question](images/how-rag-works.svg)
 Two phases:
 

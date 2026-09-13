@@ -15,7 +15,7 @@ Different subjects, identical pipeline. That's the point: swap the documents and
 Two phases:
 
 1. **Prepare (run once):** cut your documents into small **chunks** and build two search indexes — one for *meaning* (vector) and one for *exact words* (keyword).
-2. **Chat (every question):** **retrieve** the most relevant chunks, **paste** them into a prompt, and let the **LLM** write the answer from them.
+2. **Chat (every question):** **retrieve** the most relevant chunks based on the question asked, **paste** them into a prompt, and let the **LLM** write the answer from them.
 
 ---
 

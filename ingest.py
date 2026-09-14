@@ -9,10 +9,10 @@ file in the docs folder and builds the two things the chatbot searches:
     2. A KEYWORD INDEX (for "BM25" search — exact word/number based)
 
 Why both? They fail in opposite ways, so together they cover each other:
-  - Semantic search is great at "find the bit about cancelling my plan" even if
+  - Semantic search is great at "find the bit about cancelling my plan" even when
     the document says "termination of coverage" — but it can miss exact terms.
   - Keyword search nails exact terms, names, and numbers ("Section 4.2",
-    "deductible") but is blind to paraphrasing.
+    "deductible") but is blind to paraphrasing, synonyms and meaning of words.
 
 Run it with:   python ingest.py
 """

@@ -9,7 +9,7 @@ names) and (2) the two AI clients — one that turns text into vectors
 ("embeddings") and one that writes answers ("the LLM"). Instead of repeating
 that setup in every file, we do it ONCE here and import it everywhere else.
 
-Keeping secrets here also means there is exactly ONE place to look when
+Loading secrets here also means there is exactly ONE place to look when
 something is misconfigured.
 
 HOW SECRETS WORK

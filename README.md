@@ -15,13 +15,13 @@ Different subjects, identical pipeline. That's the point: swap the documents and
 Two phases:
 
 1. **Prepare (run once):** cut your documents into small **chunks** and build two search indexes — one for *meaning* (vector) and one for *exact words* (keyword).
-2. **Chat (every question):** **retrieve** the most relevant chunks based on the question asked, **paste** them into a prompt, and let the **LLM** write the answer from them.
+2. **Chat (every question):** **retrieve** the most relevant chunks based on the question asked, **paste** them into a prompt, and let the **LLM** write the answer based on the chunks of text.
 
 ---
 
 ## The four files you'll actually read
 
-The top level is deliberately tiny — four short, heavily-commented files that map one-to-one to the steps below. Read them in this order:
+The top level is four short, heavily-commented files that map one-to-one to the steps below. Read them in this order:
 
 | File | What it does |
 |------|--------------|

@@ -1,6 +1,6 @@
 # 📘 Step-by-Step Guide: Build Your Own RAG Chatbot
 
-This guide walks you from an empty folder to a working chatbot over **your own documents**. It assumes basic Python familiarity. Read [`README.md`](./README.md) first for the big picture.
+This guide walks you from an empty folder to a working chatbot using **your own documents**. It assumes basic Python familiarity. Read [`README.md`](./README.md) first for the big picture.
 
 **Contents**
 

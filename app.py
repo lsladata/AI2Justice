@@ -25,7 +25,7 @@ from search import hybrid_search
 # STEP 3a — The prompt: instructions + retrieved context + the question
 # ---------------------------------------------------------------------------
 # The prompt is just a big string we send to the LLM. The rules matter:
-#   - "use ONLY the context" keeps answers grounded and reduces made-up facts.
+#   - "use ONLY the context" keeps answers grounded and reduces hallucinations (made-up facts).
 #   - "say you don't know" is better than a confident wrong answer.
 # Rewrite the wording to fit your domain and tone.
 PROMPT_TEMPLATE = """You are a helpful assistant. Answer the question using ONLY

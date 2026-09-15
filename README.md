@@ -1,8 +1,8 @@
-# 🧠 Build Your Own RAG Chatbot
+# 🧠  AI2Justice - Build Your Own RAG Chatbot
 
-A beginner-friendly template for building a chatbot that answers questions about your own documents, any subject, any collection of files. It uses RAG (Retrieval-Augmented Generation): instead of hoping a language model already knows the answer, you show it the relevant documents and ask it to answer from them. That's what keeps answers grounded and lets the bot cite its sources.
+This is intended to be a beginner-friendly template for building a chatbot that answers questions about your own documents, any subject, any collection of files. It utilizes RAG (Retrieval-Augmented Generation): instead of hoping a language model already knows the answer, we use RAG to feed the model the relevant documents and ask it to answer from those exact documents. That's what keeps answers grounded and provides the foundation for source citations.
 
-The same engine in this repo powers two very different reference bots:
+The same engine in this repository powers two very different reference bots:
 
 - **Juris** — a legal-research assistant over statutes and rules.
 - **LSLA Asks** — an employee-benefits assistant over HR/benefits documents.

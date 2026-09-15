@@ -1,4 +1,4 @@
-# 🧠  AI2Justice - Build Your Own RAG Chatbot
+# 🧠  AI<sup>2</sup>Justice - Build Your Own RAG Chatbot
 
 This is intended to be a beginner-friendly template for building a chatbot that answers questions about your own documents, any subject, any collection of files. It utilizes RAG (Retrieval-Augmented Generation): instead of hoping a language model already knows the answer, we use RAG to feed the model the relevant documents and ask it to answer from those exact documents. That's what keeps answers grounded and provides the foundation for source citations.
 

@@ -19,7 +19,7 @@ Two phases:
 
 ---
 
-## The four files you'll actually read
+## The Four Files You'll Actually Read
 
 The top level is four short, heavily-commented files that map one-to-one to the steps below. Read them in this order:
 
@@ -34,21 +34,25 @@ Everything advanced (the full production app with four retrieval strategies, str
 
 ---
 
-## Step-by-step
+## Step-by-Step Section:
 
-### Step 0 — Install
+### Step 1 — Install
 
 ```bash
-git clone <your-repo-url>
-cd rag-chatbot-template
+git clone <your-repo-url>         # download a copy of the project to your computer
+cd rag-chatbot-template            # move into the project folder you just downloaded
 
-python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+python -m venv .venv               # create an isolated environment for this project's packages
+source .venv/bin/activate          # turn that environment on (Windows: .venv\Scripts\activate)
 
-pip install -r requirements.txt
+pip install -r requirements.txt    # install the libraries the project needs (see below)
 ```
 
-### Step 1 — Add your API keys
+That last command installs the libraries the project depends on — Streamlit (the chat interface), LangChain + Chroma (the vector store and search), rank-bm25 (keyword search), and PyMuPDF for reading PDFs, along with a few supporting packages. These are exactly what ingest.py and app.py import, so the project won't run until they're installed; using a virtual environment (the venv step above) keeps them isolated from your other Python projects.
+
+### Step 2 — Add Your API keys
+**What's an API key, and why do you need one?** The AI models this chatbot relies on (one to turn text into vectors, one to write answers) are far too large to run on your own machine. Instead, your code sends each request over the internet to a provider that runs the models for you and sends the result back. That connection point is the provider's API (Application Programming Interface) — think of it as a service window you hand requests to. An API key is the secret password that tells the provider the request is coming from your account, so it can grant access and bill the usage to you. Without a valid key the provider rejects the request, so this step is required before the chatbot can answer anything.
+
 
 This template uses **Azure OpenAI** by default (a chat model + an embedding model). Copy the template and fill in your values:
 
@@ -63,19 +67,20 @@ AZURE_CHAT_DEPLOYMENT=your-chat-deployment-name
 AZURE_EMBEDDING_DEPLOYMENT=your-embedding-deployment-name
 ```
 
-`.env` is git-ignored, so your keys never reach GitHub. Using plain OpenAI or another provider instead? It's a two-line change — see the note at the bottom of `config.py`.
+`.env` is git-ignored, so your keys never reach GitHub (privacy). Using plain OpenAI or another provider instead? It's a two-line change — see the note at the bottom of `config.py`.
 
-### Step 2 — Add your documents
+### Step 3 — Add Your Documents
 
-Drop `.txt` or `.pdf` files into the **`data/`** folder. A sample handbook is already there so you can try it immediately; delete it once you add your own.
+Drop `.txt` or `.pdf` files into the **`data/`** folder. A sample handbook is already there so you can try it immediately; delete it once you add your own to ensure your RAG bot is using the correct document(s).
 
-### Step 3 — Build the indexes
+### Step 4 — Build the Indexes
+This is the one-time **Prepare** phase from the diagram above. Running ingest.py reads the documents sitting in data/, breaks them into small pieces, and turns those pieces into two searchable indexes saved to a storage/ folder on disk. Doing this work upfront is what lets the chatbot answer instantly later: instead of re-reading every document each time someone asks a question, it just looks up the already-prepared indexes. You run it once now, and only need to run it again when your documents change.
 
 ```bash
 python ingest.py
 ```
 
-This runs four sub-steps (all printed as it goes), defined in `ingest.py`:
+This runs four sub-steps, defined in `ingest.py`:
 
 1. **Load** every file in `data/` into memory.
 2. **Split** each document into ~1,000-character chunks (with a little overlap so sentences aren't cut in half).
@@ -84,7 +89,8 @@ This runs four sub-steps (all printed as it goes), defined in `ingest.py`:
 
 You only rerun this when your documents change.
 
-### Step 4 — Chat
+### Step 5 — Chat
+This is the **Chat** phase from the diagram — the part people actually use. The command launches a small web app in your browser: streamlit is the tool that turns the Python in app.py into a clickable page, running entirely on your own machine, so nothing is published to the internet. Leave it running while you use it; stop it with Ctrl+C in the terminal when you're done.
 
 ```bash
 streamlit run app.py

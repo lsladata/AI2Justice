@@ -100,30 +100,30 @@ Ask a question. For each one the app retrieves the relevant chunks, sends them t
 
 ---
 
-## How each part works (and why)
+## How Each Part Works (and Why)
 
-### `config.py` — settings + clients
-RAG needs two AI models: an **embedding model** (turns text into vectors that capture meaning) and a **chat model / LLM** (writes the answer). Creating them in one place means one spot to change provider or fix a key. Secrets are read from `.env`, never written in code.
+### `config.py` — Settings + Clients
+RAG needs two AI models: an **embedding model** (turns text into vectors that capture meaning) and a **chat model / LLM** (writes the answer). Creating them in one place means there is only one spot to change the provider or fix a key. Secrets are read from a `.env` file, never written directly in code. This keeps your API keys separate and thus, secure from your application logic.
 
-### `ingest.py` — preparing the documents
-LLMs and search both work best on small, focused pieces of text, so we **chunk** each document. Then we build **two** indexes because they fail in opposite ways:
+### `ingest.py` — Preparing the Documents
+LLMs and keyword search both work best on small, focused pieces of text, so we **chunk** each document. Then we build **two** indexes because they fail in opposite ways:
 
-- **Vector (semantic) search** finds chunks by *meaning* — it'll match "cancel my plan" to a paragraph titled "termination of coverage". But it can miss exact terms.
-- **Keyword (BM25) search** nails exact words, names, and numbers — but is blind to paraphrasing.
+- **Vector (semantic) search** finds chunks by *meaning*. For example, it'll match "cancel my plan" to a paragraph titled "termination of coverage". But it can miss exact terms.
+- **Keyword (BM25) search** nails exact words, names, and numbers. But it is blind to paraphrasing.
 
-Building both lets them cover each other's weaknesses.
+Building both into your code allows them to cover each other's weaknesses.
 
-### `search.py` — retrieval
-Three functions, increasing in power:
+### `search.py` — Retrieval
+This has three functions, increasing in power:
 
 - `vector_search()` — meaning-based (needs the embedding API).
 - `keyword_search()` — exact-word based (no API; great for a quick offline test).
-- `hybrid_search()` — runs both and **interleaves** the results (1st vector, 1st keyword, 2nd vector…), removing duplicates. We rank by *position* rather than raw score because a vector "distance" and a BM25 "score" aren't on the same scale. When both methods return the same chunk, that's a strong signal it's relevant.
+- `hybrid_search()` — runs both and **interleaves** the results (1st vector, 1st keyword, 2nd vector…), removing duplicates. We rank by *position* rather than raw score because a vector "distance" and a BM25 "score" aren't on the same scale. When both methods return the same chunk, that's a strong signal that the chunk is relevant.
 
-> Try it without spending anything: `python search.py "how many vacation days?"` runs the keyword half only, no API key required.
+> Try it without spending anything: `python search.py "how many vacation days?"` runs the keyword search half only, no API key required.
 
 ### `app.py` — the chatbot
-The RAG loop in three lines (`answer_question`): **retrieve** chunks → **augment** the prompt by pasting them in → **generate** the answer. The prompt tells the model to answer *only* from the provided context and to admit when it doesn't know — that's what prevents confident wrong answers. The Streamlit UI then shows the answer plus its sources.
+The RAG loop in three steps (`answer_question`): **retrieve** relevant chunks → **augment** the prompt with the retrieved context → **generate** an answer. The prompt tells the model to answer *only* from the provided context and to acknowledge when it does not know the answer. This is what aids in preventing the model from confidently providing unsupported answers, minimizing hallucinations. The Streamlit UI then displays the answer along with its sources.
 
 ---
 
@@ -139,7 +139,7 @@ The RAG loop in three lines (`answer_question`): **retrieve** chunks → **augme
 
 ---
 
-## When you're ready for more
+## When You Are Ready for More...
 
 The basics above are a complete, working chatbot. The **[`advanced/`](./advanced)** folder is the production version behind Juris and LSLA Asks, and adds:
 
@@ -183,8 +183,8 @@ rag-chatbot-template/
 
 ---
 
-## Security notes
+## Security Notes
 
-- No API keys live in this repo — they're read from `.env`, which is git-ignored. Before your first push, run `git status` and confirm `.env` isn't listed.
+- No API keys live in this repository — they're read from `.env`, which is git-ignored. Before your first push, run `git status` and confirm `.env` isn't listed.
 - A `.pkl` index executes code when loaded; only load index files **you built yourself**.
-- Check your documents' licenses before publishing them in a public repo.
+- Check your documents' licenses before publishing them in a public repository.
